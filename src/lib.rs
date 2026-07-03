@@ -6,15 +6,17 @@ pub mod app_tracing;
 pub mod card;
 pub mod prelude;
 
-/// This assumption is cross cutting, use this in assertion error messages
+/// This assumption is cross cutting, use this in assertion error messages.
+/// This assumption isn't always true, but when using "reasonable" strategies
+/// it should be true
 pub const ALWAYS_VALID_SINK: &str = "ESINK to always have a valid sink";
 
 /// 1 to 12 only
 pub type DiceRoll = u8;
 
 #[ensures(0 < ret && ret <= 8)]
-pub fn roll() -> DiceRoll {
-	::rand::random::<u8>() % 8 + 1
+pub fn roll(rng: &mut impl rand::Rng) -> DiceRoll {
+	rng.random::<u8>() % 8 + 1
 }
 
 /// [DiceRoll] after any modifiers, can include negatives
@@ -65,7 +67,7 @@ impl BasicGame {
 		self.turn_num
 	}
 
-	#[ensures(self.turn_num() <= 12)]
+	#[ensures(self.turn_num <= 12)]
 	pub fn next_turn(&mut self) {
 		if self.turn_num == 12 {
 			return;
