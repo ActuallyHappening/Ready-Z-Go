@@ -1,4 +1,5 @@
 use rand::seq::IteratorRandom;
+pub(crate) use rapidhash::{HashSetExt as _, RapidHashSet as HashSet};
 use ready_z_go::{
 	card::{
 		self,
@@ -7,7 +8,6 @@ use ready_z_go::{
 	},
 	roll, AnyNumber, BasicGame, Score, ALWAYS_VALID_SINK,
 };
-pub(crate) use rapidhash::{HashSetExt as _, RapidHashSet as HashSet};
 use tracing::*;
 
 fn main() -> color_eyre::Result<()> {
@@ -30,20 +30,28 @@ type Container<T> = rapidhash::RapidHashSet<T>;
 /// and the number of no-actions should be recorded
 fn count_possibilities() -> color_eyre::Result<()> {
 	let genesis = BasicGame::new();
-	let start = { let mut start = Container::with_capacity(1); start.insert(genesis); start };
+	let start = {
+		let mut start = Container::with_capacity(1);
+		start.insert(genesis);
+		start
+	};
 
 	let mut by_turn: Vec<Container<BasicGame>> = Vec::with_capacity(12);
 	for turn_num in 0..12 {
 		// init with upper bound
-		if turn_num == 0 {
-			by_turn.push(Container::with_capacity(9));
+		// upper bound for 6th turn is max 9-6=3 possibilities per existing state
+		// let capacity_upper_bound = (9 - turn_num) ^ by_turn[turn_num - 1].len();
+		// by_turn.push(HashSet::with_capacity(capacity_upper_bound));
+		let capacity_bounds = [
+			40, 690, 6804, 43071, 187068, 582428, 1338920, 2316303, 3046912, 3054898, 2320836, 1314705,
+		];
+		by_turn.push(Container::with_capacity(capacity_bounds[turn_num]));
+
+		let previous_turn = if turn_num == 0 {
+			&start
 		} else {
-			// upper bound for 6th turn is max 9-6=3 possibilities per existing state
-			// let capacity_upper_bound = (9 - turn_num) ^ by_turn[turn_num - 1].len();
-			// by_turn.push(HashSet::with_capacity(capacity_upper_bound));
-			by_turn.push(Container::new());
-		}
-		let previous_turn = if turn_num == 0 { &start } else { &by_turn[turn_num - 1].clone() };
+			&by_turn[turn_num - 1].clone()
+		};
 		let this_turn = &mut by_turn[turn_num];
 
 		for game in previous_turn {
@@ -53,7 +61,9 @@ fn count_possibilities() -> color_eyre::Result<()> {
 	}
 
 	let last = by_turn.into_iter().last().unwrap();
-	let score_total: u128 = last.iter().fold(0, |acc, game| acc + game.card.score() as u128);
+	let score_total: u128 = last
+		.iter()
+		.fold(0, |acc, game| acc + game.card.score() as u128);
 
 	let last_num = HashSet::<BasicGame>::from_iter(last).len();
 	info!("Final number: {}", last_num);
