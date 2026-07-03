@@ -19,6 +19,8 @@ fn main() -> color_eyre::Result<()> {
 	count_possibilities()
 }
 
+type Container<T> = HashSet<T>;
+
 /// Count ALL possible distinct end game states.
 /// Distinct means what is written in the end, not just score,
 /// and irrelevant of order.
@@ -31,21 +33,21 @@ fn count_possibilities() -> color_eyre::Result<()> {
 	let rng = &mut rand::rng();
 
 	let genesis = BasicGame::new();
-	let start = { let mut start = HashSet::with_capacity(1); start.insert(genesis); start };
+	let start = { let mut start = Container::with_capacity(1); start.insert(genesis); start };
 
-	let mut by_turn: Vec<HashSet<BasicGame>> = Vec::with_capacity(12);
+	let mut by_turn: Vec<Container<BasicGame>> = Vec::with_capacity(12);
 	for turn_num in 0..12 {
 		// init with upper bound
 		if turn_num == 0 {
-			by_turn.push(HashSet::with_capacity(9));
+			by_turn.push(Container::with_capacity(9));
 		} else {
 			// upper bound for 6th turn is max 9-6=3 possibilities per existing state
 			// let capacity_upper_bound = (9 - turn_num) ^ by_turn[turn_num - 1].len();
 			// by_turn.push(HashSet::with_capacity(capacity_upper_bound));
-			by_turn.push(HashSet::new());
+			by_turn.push(Container::new());
 		}
-		let previous_turn: &HashSet<BasicGame> = if turn_num == 0 { &start } else { &by_turn[turn_num - 1].clone() };
-		let this_turn: &mut HashSet<BasicGame> = &mut by_turn[turn_num];
+		let previous_turn = if turn_num == 0 { &start } else { &by_turn[turn_num - 1].clone() };
+		let this_turn = &mut by_turn[turn_num];
 
 		for game in previous_turn {
 			this_turn.extend(possibilities(game.clone()));
@@ -53,13 +55,19 @@ fn count_possibilities() -> color_eyre::Result<()> {
 		info!(%turn_num, "possibilities: {}", this_turn.len());
 	}
 
+	let last = by_turn.into_iter().last().unwrap();
+	let last_num = HashSet::<BasicGame>::from_iter(last).len();
+	info!("Final number: {}", last_num);
+
 	Ok(())
 }
 
+type Container2<T> = Vec<T>;
+
 /// Takes every possible turn
-fn possibilities(game: BasicGame) -> HashSet<BasicGame> {
+fn possibilities(game: BasicGame) -> Container2<BasicGame> {
 	// with_capacity probably worsens performance
-	let mut possibilities = HashSet::new();
+	let mut possibilities = Container2::new();
 
 	for num in 1..=8 {
 		possibilities.extend(possibilities_num(game.clone(), num));
@@ -68,8 +76,8 @@ fn possibilities(game: BasicGame) -> HashSet<BasicGame> {
 	possibilities
 }
 
-fn possibilities_num(game: BasicGame, num: AnyNumber) -> HashSet<BasicGame> {
-	let mut possibilities = HashSet::new();
+fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
+	let mut possibilities = Container2::new();
 
 	let state = game.state();
 	let num_valid_sinks = game
@@ -95,7 +103,7 @@ fn possibilities_num(game: BasicGame, num: AnyNumber) -> HashSet<BasicGame> {
 			.expect(CAN_FILL_GUARENTEES_FILL_SUCCEEDS);
 		sim_game.next_turn();
 
-		possibilities.insert(sim_game);
+		possibilities.push(sim_game);
 	}
 
 	possibilities
