@@ -9,9 +9,9 @@ pub mod prelude;
 /// 1 to 12 only
 pub type DiceRoll = u8;
 
-#[ensures(0 <= ret && ret <= 12)]
+#[ensures(0 < ret && ret <= 8)]
 pub fn roll() -> DiceRoll {
-	::rand::random::<u8>() % 12
+	::rand::random::<u8>() % 8 + 1
 }
 
 /// [DiceRoll] after any modifiers, can include negatives

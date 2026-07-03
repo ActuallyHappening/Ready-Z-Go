@@ -9,11 +9,14 @@ fn main() -> color_eyre::Result<()> {
 
 	let mut game = BasicGame::new();
 	let dice = roll() as AnyNumber;
+	info!("Score: {}", game.card.score());
 
 	{
 		let mut state = game.state();
 		let dice = game.card.modifiers.squish.r#use(&mut state, SquishOptions::Bump, dice)?;
+		debug!("New dice: {}", dice);
 		game.card.sinks.value.any[0].fill(&state, dice)?;
+		info!("Score: {}", game.card.score());
 	}
 
 	Ok(())
