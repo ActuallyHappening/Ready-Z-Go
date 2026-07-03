@@ -1,3 +1,5 @@
+use crate::card::sink::bingo::SinkBingo;
+
 pub mod modifier;
 pub mod sink;
 
@@ -14,10 +16,18 @@ pub struct ModifiersMorfi {
 	morph: modifier::Morph,
 }
 
-#[derive(Default)]
 pub struct SinksMorfi {
-	// bingo: SinkBingoMorfi,
+	bingo: SinkBingo,
 	value: SinksValueMorfi,
+}
+
+impl Default for SinksMorfi {
+	fn default() -> Self {
+		Self {
+			bingo: SinkBingo::new([[1, 2, 3], [8, 0, 4], [7, 6, 5]]),
+			value: SinksValueMorfi::default(),
+		}
+	}
 }
 
 #[derive(Default)]

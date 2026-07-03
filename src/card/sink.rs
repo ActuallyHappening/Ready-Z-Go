@@ -1,7 +1,9 @@
 use crate::{prelude::*, AnyNumber, GameState, Score};
 
+pub mod bingo;
+
 pub trait Sink: Clone {
-	fn score(&self) -> Option<Score>;
+	fn score(&self) -> Score;
 
 	fn fill(&mut self, state: GameState, num: AnyNumber) -> Result<Score, CannotSink>;
 
@@ -22,8 +24,8 @@ pub enum CannotSink {
 #[derive(Default, Clone)]
 pub struct Any(Option<AnyNumber>);
 impl Sink for Any {
-	fn score(&self) -> Option<Score> {
-		self.0
+	fn score(&self) -> Score {
+		self.0.unwrap_or_default()
 	}
 	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
@@ -37,8 +39,8 @@ impl Sink for Any {
 #[derive(Default, Clone)]
 pub struct TwoXYourTurn(Option<AnyNumber>);
 impl Sink for TwoXYourTurn {
-	fn score(&self) -> Option<Score> {
-		self.0.map(|n| n * 2)
+	fn score(&self) -> Score {
+		self.0.map(|n| n * 2).unwrap_or_default()
 	}
 	fn fill(&mut self, state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
@@ -55,10 +57,10 @@ impl Sink for TwoXYourTurn {
 #[derive(Default, Clone)]
 pub struct MaxFour(Option<AnyNumber>);
 impl Sink for MaxFour {
-	#[ensures(ret.is_none_or(|n| n <= 4))]
-	fn score(&self) -> Option<Score> {
+	#[ensures(ret <= 4)]
+	fn score(&self) -> Score {
 		// max 4
-		self.0.map(|n| n.min(4))
+		self.0.map(|n| n.min(4)).unwrap_or_default()
 	}
 
 	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
@@ -77,12 +79,12 @@ impl Sink for MaxFour {
 fn test_max_four() {
 	{
 		let empty = MaxFour(None);
-		assert!(empty.score().is_none());
+		assert!(empty.score() == 0);
 	}
 	{
 		let mut empty = MaxFour(None);
 		empty.fill(GameState::default(), AnyNumber::from(3)).unwrap();
-		assert_eq!(empty.score(), Some(3));
+		assert_eq!(empty.score(), 3);
 	}
 	{
 		let mut empty = MaxFour(None);
@@ -94,9 +96,9 @@ fn test_max_four() {
 #[derive(Default, Clone)]
 pub struct SetOne(Option<AnyNumber>);
 impl Sink for SetOne {
-	fn score(&self) -> Option<Score> {
+	fn score(&self) -> Score {
 		// set 1
-		self.0.map(|_| 1)
+		self.0.map(|_| 1).unwrap_or_default()
 	}
 	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
