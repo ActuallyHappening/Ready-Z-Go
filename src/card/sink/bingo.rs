@@ -99,7 +99,7 @@ impl sink::Sink for SinkBingo {
 
 	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<crate::Score, sink::CannotSink> {
 		self.can_fill(state, num)?;
-		
+
 		let index = self.try_find_slot(num).ok_or_else(|| unreachable!())?;
 		self.try_fill(index)?;
 		Ok(self.score())
@@ -114,5 +114,56 @@ impl sink::Sink for SinkBingo {
 			return Err(sink::CannotSink::AlreadyFilled);
 		}
 		Ok(())
+	}
+}
+
+/// PERF: I'm pretty sure the compiler is smart enough to realise this
+/// isomorphism.
+///
+/// [1, 2, 3], [8, 0, 4], [7, 6, 5]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
+pub struct SinkBingoMorfi {
+	bingo: [[bool; 3]; 3],
+}
+
+impl From<SinkBingoMorfi> for SinkBingo {
+	fn from(bingo: SinkBingoMorfi) -> Self {
+		Self {
+			score: 4,
+			bingo: [
+				[(bingo.bingo[0][0], 1), (bingo.bingo[0][1], 2), (bingo.bingo[0][2], 3)],
+				[(bingo.bingo[1][0], 8), (bingo.bingo[1][1], 0), (bingo.bingo[1][2], 4)],
+				[(bingo.bingo[2][0], 7), (bingo.bingo[2][1], 6), (bingo.bingo[2][2], 5)],
+			],
+		}
+	}
+}
+
+impl From<SinkBingo> for SinkBingoMorfi {
+	fn from(bingo: SinkBingo) -> Self {
+		Self {
+			bingo: [
+				[bingo.bingo[0][0].0, bingo.bingo[0][1].0, bingo.bingo[0][2].0],
+				[bingo.bingo[1][0].0, bingo.bingo[1][1].0, bingo.bingo[1][2].0],
+				[bingo.bingo[2][0].0, bingo.bingo[2][1].0, bingo.bingo[2][2].0],
+			],
+		}
+	}
+}
+
+impl sink::Sink for SinkBingoMorfi {
+	fn score(&self) -> crate::Score {
+		SinkBingo::from(self.clone()).score()
+	}
+
+	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<crate::Score, sink::CannotSink> {
+		let mut this = SinkBingo::from(self.clone());
+		let score = this.fill(state, num)?;
+		*self = SinkBingoMorfi::from(this);
+		Ok(score)
+	}
+
+	fn can_fill(&self, _state: &GameState, num: AnyNumber) -> Result<(), sink::CannotSink> {
+		SinkBingo::from(self.clone()).can_fill(_state, num)
 	}
 }

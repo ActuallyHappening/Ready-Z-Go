@@ -1,11 +1,11 @@
-use crate::{Score, card::sink::bingo::SinkBingo};
+use crate::{card::sink::bingo::SinkBingoMorfi, Score};
 
 pub mod modifier;
 pub mod sink;
 
-#[derive(Default)]
+#[derive(Default, Hash, PartialEq, Eq)]
 pub struct Morfi {
-	pub modifiers: ModifiersMorfi,
+	// pub modifiers: ModifiersMorfi,
 	pub sinks: SinksMorfi,
 }
 
@@ -23,8 +23,9 @@ pub struct ModifiersMorfi {
 	pub morph: modifier::Morph,
 }
 
+#[derive(Default, Hash, PartialEq, Eq)]
 pub struct SinksMorfi {
-	pub bingo: SinkBingo,
+	pub bingo: SinkBingoMorfi,
 	pub value: SinksValueMorfi,
 }
 
@@ -48,16 +49,7 @@ impl SinksMorfi {
 	}
 }
 
-impl Default for SinksMorfi {
-	fn default() -> Self {
-		Self {
-			bingo: SinkBingo::new([[1, 2, 3], [8, 0, 4], [7, 6, 5]]),
-			value: SinksValueMorfi::default(),
-		}
-	}
-}
-
-#[derive(Default)]
+#[derive(Default, Hash, PartialEq, Eq)]
 pub struct SinksValueMorfi {
 	pub any: [sink::Any; 2],
 	pub two_x_your_turn: sink::TwoXYourTurn,
