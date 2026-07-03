@@ -131,6 +131,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "dyn_safe"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aabdea360e2a7c8d9102e372012e48127655b9fa1de157372680229a6d1f0f04"
+dependencies = [
+ "dyn_safe-proc_macros",
+]
+
+[[package]]
+name = "dyn_safe-proc_macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dac1d242ed8ebf8341e00cfa5b629bf122640d188a339afe503501de3fc29db1"
+
+[[package]]
 name = "enum_dispatch"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -337,6 +352,7 @@ dependencies = [
  "color-eyre",
  "console_error_panic_hook",
  "contracts",
+ "dyn_safe",
  "enum_dispatch",
  "getrandom 0.2.16",
  "rand",

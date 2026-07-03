@@ -1,4 +1,4 @@
-use crate::{AnyNumber, GameState, card::sink, prelude::*};
+use crate::{card::sink, prelude::*, AnyNumber, GameState};
 
 #[derive(Clone)]
 pub struct SinkBingo {
@@ -11,10 +11,22 @@ impl SinkBingo {
 		Self {
 			score: 4,
 			bingo: [
-				[(false, bingo[0][0]), (false, bingo[0][1]), (false, bingo[0][2])],
-				[(false, bingo[1][0]), (false, bingo[1][1]), (false, bingo[1][2])],
-				[(false, bingo[2][0]), (false, bingo[2][1]), (false, bingo[2][2])],
-			]
+				[
+					(false, bingo[0][0]),
+					(false, bingo[0][1]),
+					(false, bingo[0][2]),
+				],
+				[
+					(false, bingo[1][0]),
+					(false, bingo[1][1]),
+					(false, bingo[1][2]),
+				],
+				[
+					(false, bingo[2][0]),
+					(false, bingo[2][1]),
+					(false, bingo[2][2]),
+				],
+			],
 		}
 	}
 
@@ -41,13 +53,21 @@ impl SinkBingo {
 	#[ensures(ret <= 8)]
 	pub fn combos(&self) -> u8 {
 		let mut count = 0;
-		if self.left_diag() { count += 1; }
-		if self.right_diag() { count += 1; }
+		if self.left_diag() {
+			count += 1;
+		}
+		if self.right_diag() {
+			count += 1;
+		}
 		for row in 0..3 {
-			if self.row(row) { count += 1; }
+			if self.row(row) {
+				count += 1;
+			}
 		}
 		for col in 0..3 {
-			if self.col(col) { count += 1; }
+			if self.col(col) {
+				count += 1;
+			}
 		}
 		count
 	}
@@ -63,12 +83,12 @@ impl SinkBingo {
 		None
 	}
 
-	/// panics
-	fn try_fill(&mut self, index: (usize, usize)) {
+	fn try_fill(&mut self, index: (usize, usize)) -> Result<(), sink::CannotSink> {
 		if self.bingo[index.0][index.1].0 {
-			panic!("slot {:?} already filled", index);
+			return Err(sink::CannotSink::AlreadyFilled);
 		}
 		self.bingo[index.0][index.1].0 = true;
+		Ok(())
 	}
 }
 
@@ -77,18 +97,22 @@ impl sink::Sink for SinkBingo {
 		(self.combos() * self.score).try_into().unwrap()
 	}
 
-	fn fill(&mut self, _state: &GameState, num: AnyNumber) -> Result<crate::Score, sink::CannotSink> {
-		if let Some(index) = self.try_find_slot(num) {
-			self.try_fill(index);
-			Ok(self.score())
-		} else {
-			Err(sink::CannotSink::InvalidValue)
-		}
+	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<crate::Score, sink::CannotSink> {
+		self.can_fill(state, num)?;
+		
+		let index = self.try_find_slot(num).ok_or_else(|| unreachable!())?;
+		self.try_fill(index)?;
+		Ok(self.score())
 	}
 
-	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), sink::CannotSink> {
-		let mut clone = self.clone();
-		clone.fill(state, num)?;
+	fn can_fill(&self, _state: &GameState, num: AnyNumber) -> Result<(), sink::CannotSink> {
+		let Some((row, col)) = self.try_find_slot(num) else {
+			// number not in bingo
+			return Err(sink::CannotSink::InvalidValue);
+		};
+		if self.get(row, col) {
+			return Err(sink::CannotSink::AlreadyFilled);
+		}
 		Ok(())
 	}
 }

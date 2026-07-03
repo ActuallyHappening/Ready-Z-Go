@@ -1,6 +1,6 @@
 #![allow(unused_comparisons)]
 
-use crate::prelude::*;
+use crate::{card::modifier, prelude::*};
 
 pub mod app_tracing;
 pub mod card;
@@ -58,6 +58,13 @@ impl BasicGame {
 	#[ensures(0 <= ret && ret < 12)]
 	pub fn turn_num(&self) -> u8 {
 		self.turn_num
+	}
+
+	pub fn next_turn(&mut self) {
+		self.turn_num += 1;
+		if self.turn_num == 12 {
+			panic!("Too many turns")
+		}
 	}
 
 	/// First and last roll

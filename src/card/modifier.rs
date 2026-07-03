@@ -1,9 +1,20 @@
 use crate::{prelude::*, AnyNumber, GameState};
 
-pub trait Modifier: Clone {
-	type ModifierOption: Clone;
+// #[dyn_safe(true)]
+trait Example {
+	type Ass;
+}
+
+fn example() {
+	let a: Box<dyn Example<Ass = i32>> = todo!();
+}
+
+// #[dyn_safe(true)]
+pub trait Modifier {
+	type ModifierOption;
 
 	fn all_options(&self) -> impl IntoIterator<Item = Self::ModifierOption>;
+
 	/// PERF: More efficient implementations exist for subtypes
 	fn usable_options(&self, state: &GameState, input: AnyNumber) -> impl IntoIterator<Item = Self::ModifierOption> {
 		let mut initial: Vec<Self::ModifierOption> = self.all_options().into_iter().collect();
@@ -19,12 +30,7 @@ pub trait Modifier: Clone {
 		input: AnyNumber,
 	) -> Result<AnyNumber, CannotModify>;
 
-	fn can_use(&self, state: &GameState, option: &Self::ModifierOption, input: AnyNumber) -> bool {
-		let mut clone = self.clone();
-		let mut state = state.clone();
-		let option = option.clone();
-		clone.r#use(&mut state, option, input).is_ok()
-	}
+	fn can_use(&self, state: &GameState, option: &Self::ModifierOption, input: AnyNumber) -> bool;
 }
 
 #[derive(Default, Clone)]
@@ -51,6 +57,14 @@ impl Modifier for Copy {
 
 		state.add_number_to_resolve_stack(input);
 		Ok(input)
+	}
+
+
+	fn can_use(&self, state: &GameState, option: &Self::ModifierOption, input: AnyNumber) -> bool {
+		let mut clone = self.clone();
+		let mut state = state.clone();
+		let option = option.clone();
+		clone.r#use(&mut state, option, input).is_ok()
 	}
 }
 
@@ -89,6 +103,14 @@ impl Modifier for Squish {
 			SquishOptions::Chip => Ok(input - 1),
 		}
 	}
+
+
+	fn can_use(&self, state: &GameState, option: &Self::ModifierOption, input: AnyNumber) -> bool {
+		let mut clone = self.clone();
+		let mut state = state.clone();
+		let option = option.clone();
+		clone.r#use(&mut state, option, input).is_ok()
+	}
 }
 
 #[derive(Default, Clone)]
@@ -108,9 +130,11 @@ pub enum MorphOptions {
 
 impl Modifier for Morph {
 	type ModifierOption = MorphOptions;
+
 	fn all_options(&self) -> impl IntoIterator<Item = Self::ModifierOption> {
 		[MorphOptions::Bump, MorphOptions::DoubleBump, MorphOptions::Chip, MorphOptions::DoubleChip]
 	}
+
 	fn r#use(&mut self, _state: &mut GameState, option: Self::ModifierOption, input: AnyNumber) -> Result<AnyNumber, CannotModify> {
 		if self.used {
 			return Err(CannotModify::AlreadyUsed);
@@ -123,5 +147,13 @@ impl Modifier for Morph {
 			MorphOptions::Chip => Ok(input - 1),
 			MorphOptions::DoubleChip => Ok(input - 2),
 		}
+	}
+
+
+	fn can_use(&self, state: &GameState, option: &Self::ModifierOption, input: AnyNumber) -> bool {
+		let mut clone = self.clone();
+		let mut state = state.clone();
+		let option = option.clone();
+		clone.r#use(&mut state, option, input).is_ok()
 	}
 }
