@@ -1,0 +1,12 @@
+2026-07-03T05:40:42.508618Z  INFO ready_z_go: possibilities: 40 turn_num=0
+2026-07-03T05:40:42.511738Z  INFO ready_z_go: possibilities: 690 turn_num=1
+2026-07-03T05:40:42.544115Z  INFO ready_z_go: possibilities: 6804 turn_num=2
+2026-07-03T05:40:42.696523Z  INFO ready_z_go: possibilities: 43071 turn_num=3
+2026-07-03T05:40:43.542410Z  INFO ready_z_go: possibilities: 187068 turn_num=4
+2026-07-03T05:40:46.991444Z  INFO ready_z_go: possibilities: 582428 turn_num=5
+2026-07-03T05:40:56.915975Z  INFO ready_z_go: possibilities: 1338920 turn_num=6
+2026-07-03T05:41:17.301640Z  INFO ready_z_go: possibilities: 2316303 turn_num=7
+2026-07-03T05:41:48.472228Z  INFO ready_z_go: possibilities: 3046912 turn_num=8
+2026-07-03T05:42:23.300663Z  INFO ready_z_go: possibilities: 3054898 turn_num=9
+2026-07-03T05:42:52.023335Z  INFO ready_z_go: possibilities: 2320836 turn_num=10
+2026-07-03T05:43:10.568872Z  INFO ready_z_go: possibilities: 1314705 turn_num=11

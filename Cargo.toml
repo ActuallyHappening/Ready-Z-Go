@@ -8,6 +8,10 @@ edition = "2021"
 [profile.release]
 overflow-checks = true
 
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [dependencies]
 color-eyre = "0.6.5"
 contracts = "0.6.7"
