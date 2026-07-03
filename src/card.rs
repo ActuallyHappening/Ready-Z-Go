@@ -1,22 +1,26 @@
 pub mod modifier;
 pub mod sink;
 
-pub struct CardMorfi {
+#[derive(Default)]
+pub struct Morfi {
 	modifiers: ModifiersMorfi,
 	sinks: SinksMorfi,
 }
 
+#[derive(Default)]
 pub struct ModifiersMorfi {
 	copy: modifier::Copy,
 	squish: modifier::Squish,
 	morph: modifier::Morph,
 }
 
+#[derive(Default)]
 pub struct SinksMorfi {
 	// bingo: SinkBingoMorfi,
 	value: SinksValueMorfi,
 }
 
+#[derive(Default)]
 pub struct SinksValueMorfi {
 	any: [sink::Any; 2],
 	two_x_your_turn: sink::TwoXYourTurn,

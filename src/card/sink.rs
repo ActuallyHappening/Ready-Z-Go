@@ -19,7 +19,7 @@ pub enum CannotSink {
 	InvalidState,
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct Any(Option<AnyNumber>);
 impl Sink for Any {
 	fn score(&self) -> Option<Score> {
@@ -34,7 +34,7 @@ impl Sink for Any {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct TwoXYourTurn(Option<AnyNumber>);
 impl Sink for TwoXYourTurn {
 	fn score(&self) -> Option<Score> {
@@ -52,7 +52,7 @@ impl Sink for TwoXYourTurn {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct MaxFour(Option<AnyNumber>);
 impl Sink for MaxFour {
 	#[ensures(ret.is_none_or(|n| n <= 4))]
@@ -91,7 +91,7 @@ fn test_max_four() {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct SetOne(Option<AnyNumber>);
 impl Sink for SetOne {
 	fn score(&self) -> Option<Score> {
