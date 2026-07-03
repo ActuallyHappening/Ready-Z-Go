@@ -6,6 +6,9 @@ pub mod app_tracing;
 pub mod card;
 pub mod prelude;
 
+/// This assumption is cross cutting, use this in assertion error messages
+pub const ALWAYS_VALID_SINK: &str = "ESINK to always have a valid sink";
+
 /// 1 to 12 only
 pub type DiceRoll = u8;
 
@@ -54,17 +57,24 @@ impl BasicGame {
 		}
 	}
 
-	/// 0 indexed
+	/// 0 indexed.
+	/// Don't call on a finished game.
+	#[requires(!self.finished())]
 	#[ensures(0 <= ret && ret < 12)]
 	pub fn turn_num(&self) -> u8 {
 		self.turn_num
 	}
 
+	#[ensures(self.turn_num() <= 12)]
 	pub fn next_turn(&mut self) {
-		self.turn_num += 1;
 		if self.turn_num == 12 {
-			panic!("Too many turns")
+			return;
 		}
+		self.turn_num += 1;
+	}
+
+	pub fn finished(&self) -> bool {
+		self.turn_num == 12
 	}
 
 	/// First and last roll
