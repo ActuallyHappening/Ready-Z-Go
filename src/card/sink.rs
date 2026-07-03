@@ -2,16 +2,13 @@ use crate::{prelude::*, AnyNumber, GameState, Score};
 
 pub mod bingo;
 
-pub trait Sink: Clone {
+/// Can eat exactly one dice roll
+pub trait Sink {
 	fn score(&self) -> Score;
 
-	fn fill(&mut self, state: GameState, num: AnyNumber) -> Result<Score, CannotSink>;
+	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink>;
 
-	fn can_fill(&self, state: GameState, num: AnyNumber) -> Result<(), CannotSink> {
-		let mut clone = self.clone();
-		clone.fill(state, num)?;
-		Ok(())
-	}
+	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink>;
 }
 
 #[derive(thiserror::Error, Debug, PartialEq)]
@@ -30,12 +27,17 @@ impl Sink for Any {
 	fn score(&self) -> Score {
 		self.0.unwrap_or_default()
 	}
-	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
+	fn fill(&mut self, _state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
 			return Err(CannotSink::AlreadyFilled);
 		}
 		self.0 = Some(num);
 		Ok(num)
+	}
+	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink> {
+		let mut clone = self.clone();
+		clone.fill(state, num)?;
+		Ok(())
 	}
 }
 
@@ -45,7 +47,7 @@ impl Sink for TwoXYourTurn {
 	fn score(&self) -> Score {
 		self.0.map(|n| n * 2).unwrap_or_default()
 	}
-	fn fill(&mut self, state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
+	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
 			return Err(CannotSink::AlreadyFilled);
 		}
@@ -54,6 +56,11 @@ impl Sink for TwoXYourTurn {
 		}
 		self.0 = Some(num);
 		Ok(num)
+	}
+	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink> {
+		let mut clone = self.clone();
+		clone.fill(state, num)?;
+		Ok(())
 	}
 }
 
@@ -66,7 +73,7 @@ impl Sink for MaxFour {
 		self.0.map(|n| n.min(4)).unwrap_or_default()
 	}
 
-	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
+	fn fill(&mut self, _state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
 			return Err(CannotSink::AlreadyFilled);
 		}
@@ -75,6 +82,11 @@ impl Sink for MaxFour {
 		}
 		self.0 = Some(num);
 		Ok(num)
+	}
+	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink> {
+		let mut clone = self.clone();
+		clone.fill(state, num)?;
+		Ok(())
 	}
 }
 
@@ -86,12 +98,14 @@ fn test_max_four() {
 	}
 	{
 		let mut empty = MaxFour(None);
-		empty.fill(GameState::default(), AnyNumber::from(3i16)).unwrap();
+		empty
+			.fill(&GameState::default(), AnyNumber::from(3i16))
+			.unwrap();
 		assert_eq!(empty.score(), 3);
 	}
 	{
 		let mut empty = MaxFour(None);
-		let res = empty.fill(GameState::default(), AnyNumber::from(6i16));
+		let res = empty.fill(&GameState::default(), AnyNumber::from(6i16));
 		assert_eq!(res, Err(CannotSink::InvalidValue));
 	}
 }
@@ -103,11 +117,16 @@ impl Sink for SetOne {
 		// set 1
 		self.0.map(|_| 1).unwrap_or_default()
 	}
-	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<Score, CannotSink> {
+	fn fill(&mut self, _state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		if self.0.is_some() {
 			return Err(CannotSink::AlreadyFilled);
 		}
 		self.0 = Some(num);
 		Ok(num)
+	}
+	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink> {
+		let mut clone = self.clone();
+		clone.fill(state, num)?;
+		Ok(())
 	}
 }

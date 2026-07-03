@@ -54,7 +54,9 @@ impl Modifier for Copy {
 	}
 }
 
+#[derive(thiserror::Error, Debug)]
 pub enum CannotModify {
+	#[error("modifier already used")]
 	AlreadyUsed,
 }
 

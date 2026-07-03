@@ -77,12 +77,18 @@ impl sink::Sink for SinkBingo {
 		(self.combos() * self.score).try_into().unwrap()
 	}
 
-	fn fill(&mut self, _state: GameState, num: AnyNumber) -> Result<crate::Score, sink::CannotSink> {
+	fn fill(&mut self, _state: &GameState, num: AnyNumber) -> Result<crate::Score, sink::CannotSink> {
 		if let Some(index) = self.try_find_slot(num) {
 			self.try_fill(index);
 			Ok(self.score())
 		} else {
 			Err(sink::CannotSink::InvalidValue)
 		}
+	}
+
+	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), sink::CannotSink> {
+		let mut clone = self.clone();
+		clone.fill(state, num)?;
+		Ok(())
 	}
 }

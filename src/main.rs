@@ -1,4 +1,4 @@
-use ready_z_go::{AnyNumber, BasicGame, card::sink::Sink, roll};
+use ready_z_go::{AnyNumber, BasicGame, card::{modifier::{Modifier as _, SquishOptions}, sink::Sink}, roll};
 use tracing::*;
 
 fn main() -> color_eyre::Result<()> {
@@ -8,11 +8,12 @@ fn main() -> color_eyre::Result<()> {
 	info!("Hello, world!");
 
 	let mut game = BasicGame::new();
-	let first_roll = roll();
+	let dice = roll() as AnyNumber;
 
 	{
 		let mut state = game.state();
-		game.card.sinks.value.any[0].fill(state, first_roll as AnyNumber)?;
+		let dice = game.card.modifiers.squish.r#use(&mut state, SquishOptions::Bump, dice)?;
+		game.card.sinks.value.any[0].fill(&state, dice)?;
 	}
 
 	Ok(())

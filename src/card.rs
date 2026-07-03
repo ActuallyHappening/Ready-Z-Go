@@ -39,7 +39,12 @@ pub struct SinksValueMorfi {
 }
 
 impl SinksValueMorfi {
-	// pub fn iter_mut(&self) -> impl Iterator<Item = &mut sink::Any> {
-	// 	todo!()
-	// }
+	pub fn iter_mut(&mut self) -> impl IntoIterator<Item = &mut dyn sink::Sink> {
+		let mut ret = Vec::with_capacity(8);
+		ret.extend(self.any.iter_mut().map(|sink| sink as &mut dyn sink::Sink));
+		ret.push((&mut self.two_x_your_turn) as &mut dyn sink::Sink);
+		ret.push((&mut self.max_four) as &mut dyn sink::Sink);
+		ret.extend(self.set_one.iter_mut().map(|s| s as &mut dyn sink::Sink));
+		ret
+	}
 }

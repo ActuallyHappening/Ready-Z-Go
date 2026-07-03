@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 color-eyre = "0.6.5"
 contracts = "0.6.7"
+enum_dispatch = "0.3.13"
 rand = "0.10.2"
 serde = { version = "1.0.163", features = ["derive"] }
 thiserror = "2.0.18"
