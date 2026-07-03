@@ -346,6 +346,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
 
 [[package]]
+name = "rapidhash"
+version = "4.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32b266a82f4aa99bb5c25e28d11cc44ace63d91adbcbcee4d323e2ae3d49ef37"
+dependencies = [
+ "rustversion",
+]
+
+[[package]]
 name = "ready-z-go"
 version = "0.1.0"
 dependencies = [
@@ -356,6 +365,7 @@ dependencies = [
  "enum_dispatch",
  "getrandom 0.2.16",
  "rand",
+ "rapidhash",
  "serde",
  "thiserror",
  "tracing",

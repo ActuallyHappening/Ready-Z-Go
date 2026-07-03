@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use rand::seq::IteratorRandom;
 use ready_z_go::{
 	card::{
@@ -9,6 +7,7 @@ use ready_z_go::{
 	},
 	roll, AnyNumber, BasicGame, Score, ALWAYS_VALID_SINK,
 };
+pub(crate) use rapidhash::{HashSetExt as _, RapidHashSet as HashSet};
 use tracing::*;
 
 fn main() -> color_eyre::Result<()> {
@@ -19,7 +18,7 @@ fn main() -> color_eyre::Result<()> {
 	count_possibilities()
 }
 
-type Container<T> = HashSet<T>;
+type Container<T> = rapidhash::RapidHashSet<T>;
 
 /// Count ALL possible distinct end game states.
 /// Distinct means what is written in the end, not just score,
@@ -30,8 +29,6 @@ type Container<T> = HashSet<T>;
 /// - Assume taking no action is only allowed when no slots are permitted,
 /// and the number of no-actions should be recorded
 fn count_possibilities() -> color_eyre::Result<()> {
-	let rng = &mut rand::rng();
-
 	let genesis = BasicGame::new();
 	let start = { let mut start = Container::with_capacity(1); start.insert(genesis); start };
 
@@ -56,8 +53,13 @@ fn count_possibilities() -> color_eyre::Result<()> {
 	}
 
 	let last = by_turn.into_iter().last().unwrap();
+	let score_total: u128 = last.iter().fold(0, |acc, game| acc + game.card.score() as u128);
+
 	let last_num = HashSet::<BasicGame>::from_iter(last).len();
 	info!("Final number: {}", last_num);
+
+	let average = score_total as f32 / last_num as f32;
+	info!("Average score: {}", average);
 
 	Ok(())
 }
