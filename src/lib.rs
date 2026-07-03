@@ -1,10 +1,11 @@
 #![allow(unused_comparisons)]
 
-use crate::{card::modifier, prelude::*};
+use crate::{card::modifier, prelude::*, state::GameState};
 
 pub mod app_tracing;
 pub mod card;
 pub mod prelude;
+pub mod state;
 
 /// This assumption is cross cutting, use this in assertion error messages.
 /// This assumption isn't always true, but when using "reasonable" strategies
@@ -23,28 +24,6 @@ pub fn roll(rng: &mut impl rand::Rng) -> DiceRoll {
 pub type AnyNumber = i16;
 
 pub type Score = AnyNumber;
-
-#[derive(Default, Clone)]
-pub struct GameState {
-	your_turn: bool,
-	next_resolve_stack: Option<AnyNumber>,
-}
-
-impl GameState {
-	pub fn your_turn(mut self, val: bool) -> Self {
-		self.your_turn = val;
-		self
-	}
-}
-
-impl GameState {
-	pub fn add_number_to_resolve_stack(&mut self, number: AnyNumber) {
-		if self.next_resolve_stack.is_some() {
-			todo!("Stack should only ever be one deep")
-		}
-		self.next_resolve_stack = Some(number);
-	}
-}
 
 pub struct BasicGame {
 	turn_num: u8,
@@ -86,7 +65,7 @@ impl BasicGame {
 
 	pub fn state(&self) -> GameState {
 		GameState::default()
-			.your_turn(self.your_turn())
+			.with_your_turn(self.your_turn())
 	}
 }
 

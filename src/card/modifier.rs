@@ -1,15 +1,6 @@
 use crate::{prelude::*, AnyNumber, GameState};
 
 // #[dyn_safe(true)]
-trait Example {
-	type Ass;
-}
-
-fn example() {
-	let a: Box<dyn Example<Ass = i32>> = todo!();
-}
-
-// #[dyn_safe(true)]
 pub trait Modifier {
 	type ModifierOption;
 
@@ -33,7 +24,7 @@ pub trait Modifier {
 	fn can_use(&self, state: &GameState, option: &Self::ModifierOption, input: AnyNumber) -> bool;
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct Copy {
 	used: bool,
 }
@@ -74,7 +65,7 @@ pub enum CannotModify {
 	AlreadyUsed,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct Squish {
 	used: bool,
 }
@@ -113,7 +104,7 @@ impl Modifier for Squish {
 	}
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct Morph {
 	used: bool
 }

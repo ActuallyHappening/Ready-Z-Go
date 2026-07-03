@@ -9,17 +9,39 @@ use ready_z_go::{
 use tracing::*;
 
 fn main() -> color_eyre::Result<()> {
-	ready_z_go::app_tracing::init_debug_tools("ready_z_go=trace").unwrap();
+	ready_z_go::app_tracing::init_debug_tools("ready_z_go=debug")?;
 	debug!("Logging started");
 	info!("Hello, world!");
+
+	count_possibilities()
+}
+
+/// Count ALL possible distinct end game states.
+/// Distinct means what is written in the end, not just score,
+/// and irrelevant of order.
+///
+/// - Assume no modifiers
+/// - Assume 2 your-turns, first and last
+/// - Assume taking no action is only allowed when no slots are permitted,
+/// and the number of no-actions should be recorded
+fn count_possibilities() -> color_eyre::Result<()> {
 	let rng = &mut rand::rng();
 
+	let start = BasicGame::new();
+
+	
+
+	Ok(())
+}
+
+fn basic_random() -> color_eyre::Result<()> {
+	let rng = &mut rand::rng();
 	// what is the average value using no modifiers?
 	// run N games randomly and average scores,
 	// - assuming 2 your-turns
 	// - assuming random slot filling
 	// - assuming no modifiers
-	// - assuming taking no action is always allowed
+	// - assuming taking no action is allowed if no slots are permitted
 	const N: usize = 100;
 	let mut scores = Vec::<Score>::with_capacity(N);
 

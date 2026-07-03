@@ -7,9 +7,9 @@ pub mod bingo;
 pub trait Sink {
 	fn score(&self) -> Score;
 
-	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink>;
-
 	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink>;
+
+	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink>;
 }
 
 #[derive(thiserror::Error, Debug, PartialEq)]
@@ -22,7 +22,7 @@ pub enum CannotSink {
 	InvalidState,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct Any(Option<AnyNumber>);
 impl Sink for Any {
 	fn score(&self) -> Score {
@@ -44,41 +44,44 @@ impl Sink for Any {
 	}
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct TwoXYourTurn(Option<AnyNumber>);
 impl Sink for TwoXYourTurn {
 	fn score(&self) -> Score {
 		self.0.map(|n| n * 2).unwrap_or_default()
 	}
+
+	fn can_fill(&self, state: &GameState, _num: AnyNumber) -> Result<(), CannotSink> {
+		if self.0.is_some() {
+			return Err(CannotSink::AlreadyFilled);
+		}
+		if !state.your_turn() {
+			return Err(CannotSink::InvalidState);
+		}
+		Ok(())
+	}
+
 	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		self.can_fill(state, num)?;
 		self.0 = Some(num);
 		trace!(%num, "Filled sink x2 on your roll");
 		Ok(num)
 	}
-	fn can_fill(&self, state: &GameState, _num: AnyNumber) -> Result<(), CannotSink> {
-		if self.0.is_some() {
-			return Err(CannotSink::AlreadyFilled);
-		}
-		if !state.your_turn {
-			return Err(CannotSink::InvalidState);
-		}
-		Ok(())
-	}
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct MaxFour(Option<AnyNumber>);
 impl Sink for MaxFour {
 	#[ensures(ret <= 4)]
 	fn score(&self) -> Score {
 		// max 4
-		self.0.map(|n| n.min(4)).unwrap_or_default()
+		self.0.unwrap_or_default()
 	}
 
+	#[ensures(self.score() <= 4)]
 	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		self.can_fill(state, num)?;
-		self.0 = Some(num);
+		self.0 = Some(num.min(4));
 		trace!(%num, "Filled sink <=4 max value of 4");
 		Ok(num)
 	}
@@ -113,23 +116,25 @@ fn test_max_four() {
 	}
 }
 
-#[derive(Default, Clone)]
-pub struct SetOne(Option<AnyNumber>);
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
+pub struct SetOne(Option<()>);
 impl Sink for SetOne {
 	fn score(&self) -> Score {
 		// set 1
 		self.0.map(|_| 1).unwrap_or_default()
 	}
-	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
-		self.can_fill(state, num)?;
-		self.0 = Some(num);
-		trace!(%num, "Filled sink set 1");
-		Ok(num)
-	}
+
 	fn can_fill(&self, _state: &GameState, _num: AnyNumber) -> Result<(), CannotSink> {
 		if self.0.is_some() {
 			return Err(CannotSink::AlreadyFilled);
 		}
 		Ok(())
+	}
+
+	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
+		self.can_fill(state, num)?;
+		self.0 = Some(());
+		trace!(%num, "Filled sink set 1");
+		Ok(num)
 	}
 }
