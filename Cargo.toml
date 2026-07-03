@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 color-eyre = "0.6.5"
+contracts = "0.6.7"
 serde = { version = "1.0.163", features = ["derive"] }
 tracing = "0.1.37"
 tracing-error = "0.2.1"
