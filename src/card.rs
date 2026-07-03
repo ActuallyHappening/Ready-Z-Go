@@ -54,7 +54,7 @@ pub struct SinksValueMorfi {
 	pub any: [sink::Any; 2],
 	pub two_x_your_turn: sink::TwoXYourTurn,
 	pub max_four: sink::MaxFour,
-	pub set_one: [sink::SetOne; 4],
+	pub set_one: sink::SetOne<4>,
 }
 
 impl SinksValueMorfi {
@@ -63,7 +63,7 @@ impl SinksValueMorfi {
 		ret.extend(self.any.iter_mut().map(|sink| sink as &mut dyn sink::Sink));
 		ret.push((&mut self.two_x_your_turn) as &mut dyn sink::Sink);
 		ret.push((&mut self.max_four) as &mut dyn sink::Sink);
-		ret.extend(self.set_one.iter_mut().map(|s| s as &mut dyn sink::Sink));
+		ret.push((&mut self.set_one) as &mut dyn sink::Sink);
 		ret.into_iter()
 	}
 
@@ -72,7 +72,7 @@ impl SinksValueMorfi {
 		ret.extend(self.any.iter().map(|sink| sink as &dyn sink::Sink));
 		ret.push((&self.two_x_your_turn) as &dyn sink::Sink);
 		ret.push((&self.max_four) as &dyn sink::Sink);
-		ret.extend(self.set_one.iter().map(|s| s as &dyn sink::Sink));
+		ret.push((&self.set_one) as &dyn sink::Sink);
 		ret.into_iter()
 	}
 

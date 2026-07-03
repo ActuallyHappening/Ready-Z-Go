@@ -5,7 +5,7 @@ use crate::{card::sink, prelude::*, BasicGame};
 #[dyn_safe(true)]
 pub trait SinkHeuristic {
 	/// May aggressively reject all sinks
-	fn filter<'a, 'b, 'c>(&'a mut self, sim_game: &'b BasicGame, sink: &'c dyn Any) -> bool;
+	fn filter_sink<'a, 'b, 'c>(&'a mut self, sim_game: &'b BasicGame, sink: &'c dyn Any) -> bool;
 }
 
 /// [None] is a no-op filter (allows everything) and disabled
@@ -13,11 +13,11 @@ impl<T> SinkHeuristic for Option<T>
 where
 	T: SinkHeuristic,
 {
-	fn filter(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
+	fn filter_sink(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
 		let Some(inner) = self.as_mut() else {
 			return true;
 		};
-		inner.filter(sim_game, sink)
+		inner.filter_sink(sim_game, sink)
 	}
 }
 
@@ -26,8 +26,8 @@ impl<T> SinkHeuristic for &mut T
 where
 	T: SinkHeuristic,
 {
-	fn filter(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
-		(*self).filter(sim_game, sink)
+	fn filter_sink(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
+		(*self).filter_sink(sim_game, sink)
 	}
 }
 
@@ -52,7 +52,7 @@ impl<T> PreferSink<T> {
 }
 
 impl<T: 'static> SinkHeuristic for PreferSink<T> {
-	fn filter(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
+	fn filter_sink(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
 		if !self.enabled(sim_game) {
 			return true;
 		}

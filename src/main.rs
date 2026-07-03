@@ -92,7 +92,10 @@ fn possibilities(game: BasicGame) -> Container2<BasicGame> {
 fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
 	let mut possibilities = Container2::new();
 
-	let mut heuristic = heuristics::PreferSink::<sink::bingo::SinkBingoMorfi>::new(0..=8);
+	let mut heuristic = Some(heuristics::PreferSink::<sink::bingo::SinkBingoMorfi>::new(
+		0..=8,
+	));
+	heuristic = None;
 
 	let state = game.state();
 	let initial_valid_sinks = game
@@ -106,12 +109,14 @@ fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
 	{
 		let after_heuristic = initial_valid_sinks
 			.iter()
-			.filter(|sink| {
-				// let sink = (&**sink) as &dyn Any;
-				heuristic.filter(&game, **sink)
-			})
-			.collect::<Vec<_>>();
-		num_valid_sinks = after_heuristic.len();
+			.filter(|sink| heuristic.filter_sink(&game, **sink));
+		let count = after_heuristic.count();
+		if count != 0 {
+			num_valid_sinks = count;
+		} else {
+			// heuristic too aggressive
+			heuristic = None;
+		}
 	}
 
 	for i in 0..num_valid_sinks {
@@ -124,8 +129,7 @@ fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
 			.iter_mut()
 			.filter(|sink| sink.can_fill(&sim_state, num).is_ok())
 			.filter(|sink| {
-				let sink = (&**sink) as &dyn Any;
-				heuristic.filter(&game, sink)
+				heuristic.filter_sink(&game, *sink)
 			})
 			.nth(i)
 			.expect("cloned games to have identical sinks");

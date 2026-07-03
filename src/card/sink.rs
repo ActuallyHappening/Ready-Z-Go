@@ -120,15 +120,21 @@ fn test_max_four() {
 }
 
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
-pub struct SetOne(Option<()>);
-impl Sink for SetOne {
+pub struct SetOne<const N: u8> {
+	filled: u8,
+}
+impl<const N: u8> Sink for SetOne<N> {
+	#[ensures(ret <= N as i16)]
 	fn score(&self) -> Score {
-		// set 1
-		self.0.map(|_| 1).unwrap_or_default()
+		// 1 each
+		self.filled as i16
 	}
 
 	fn can_fill(&self, _state: &GameState, _num: AnyNumber) -> Result<(), CannotSink> {
-		if self.0.is_some() {
+		if self.filled > N {
+			unreachable!()
+		}
+		if self.filled == N {
 			return Err(CannotSink::AlreadyFilled);
 		}
 		Ok(())
@@ -136,8 +142,8 @@ impl Sink for SetOne {
 
 	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink> {
 		self.can_fill(state, num)?;
-		self.0 = Some(());
-		trace!(%num, "Filled sink set 1");
+		self.filled += 1;
+		trace!(%num, "Filled sink Set1 filled={}", self.filled);
 		Ok(num)
 	}
 }
