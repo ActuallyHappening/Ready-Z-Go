@@ -25,6 +25,7 @@ pub type AnyNumber = i16;
 
 pub type Score = AnyNumber;
 
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct BasicGame {
 	turn_num: u8,
 	pub card: card::Morfi,

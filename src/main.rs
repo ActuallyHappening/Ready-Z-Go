@@ -1,8 +1,11 @@
+use std::collections::HashSet;
+
 use rand::seq::IteratorRandom;
 use ready_z_go::{
 	card::{
+		self,
 		modifier::{Modifier as _, SquishOptions},
-		sink::Sink,
+		sink::{Sink, CAN_FILL_GUARENTEES_FILL_SUCCEEDS},
 	},
 	roll, AnyNumber, BasicGame, Score, ALWAYS_VALID_SINK,
 };
@@ -27,11 +30,75 @@ fn main() -> color_eyre::Result<()> {
 fn count_possibilities() -> color_eyre::Result<()> {
 	let rng = &mut rand::rng();
 
-	let start = BasicGame::new();
+	let genesis = BasicGame::new();
+	let start = { let mut start = HashSet::with_capacity(1); start.insert(genesis); start };
 
-	
+	let mut by_turn: Vec<HashSet<BasicGame>> = Vec::with_capacity(12);
+	for turn_num in 0..12 {
+		// init with upper bound
+		if turn_num == 0 {
+			by_turn.push(HashSet::with_capacity(9));
+		} else {
+			// upper bound for 6th turn is max 9-6=3 possibilities per existing state
+			// let capacity_upper_bound = (9 - turn_num) ^ by_turn[turn_num - 1].len();
+			// by_turn.push(HashSet::with_capacity(capacity_upper_bound));
+			by_turn.push(HashSet::new());
+		}
+		let previous_turn: &HashSet<BasicGame> = if turn_num == 0 { &start } else { &by_turn[turn_num - 1].clone() };
+		let this_turn: &mut HashSet<BasicGame> = &mut by_turn[turn_num];
+
+		for game in previous_turn {
+			this_turn.extend(possibilities(game.clone()));
+		}
+		info!(%turn_num, "possibilities: {}", this_turn.len());
+	}
 
 	Ok(())
+}
+
+/// Takes every possible turn
+fn possibilities(game: BasicGame) -> HashSet<BasicGame> {
+	// with_capacity probably worsens performance
+	let mut possibilities = HashSet::new();
+
+	for num in 1..=8 {
+		possibilities.extend(possibilities_num(game.clone(), num));
+	}
+
+	possibilities
+}
+
+fn possibilities_num(game: BasicGame, num: AnyNumber) -> HashSet<BasicGame> {
+	let mut possibilities = HashSet::new();
+
+	let state = game.state();
+	let num_valid_sinks = game
+		.card
+		.sinks
+		.iter()
+		.filter(|sink| sink.can_fill(&state, num).is_ok())
+		.count();
+
+	for i in 0..num_valid_sinks {
+		let mut sim_game = game.clone();
+		let sim_state = sim_game.state();
+		let sink = sim_game
+			.card
+			.sinks
+			.iter_mut()
+			.filter(|sink| sink.can_fill(&sim_state, num).is_ok())
+			.nth(i)
+			.expect("cloned games to have identical sinks");
+
+		sink
+			.fill(&sim_state, num)
+			.expect(CAN_FILL_GUARENTEES_FILL_SUCCEEDS);
+		sim_game.next_turn();
+
+		possibilities.insert(sim_game);
+	}
+
+	possibilities
 }
 
 fn basic_random() -> color_eyre::Result<()> {

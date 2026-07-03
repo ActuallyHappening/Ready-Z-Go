@@ -7,10 +7,13 @@ pub mod bingo;
 pub trait Sink {
 	fn score(&self) -> Score;
 
+	/// If [can_fill] succeeds, [fill] must succeed as well.
 	fn can_fill(&self, state: &GameState, num: AnyNumber) -> Result<(), CannotSink>;
 
 	fn fill(&mut self, state: &GameState, num: AnyNumber) -> Result<Score, CannotSink>;
 }
+
+pub const CAN_FILL_GUARENTEES_FILL_SUCCEEDS: &str = "ECANFILL can_fill to guarentee fill doesn't error";
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum CannotSink {

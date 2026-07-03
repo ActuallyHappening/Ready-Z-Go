@@ -3,7 +3,7 @@ use crate::{card::sink::bingo::SinkBingoMorfi, Score};
 pub mod modifier;
 pub mod sink;
 
-#[derive(Default, Hash, PartialEq, Eq)]
+#[derive(Clone, Default, Hash, PartialEq, Eq)]
 pub struct Morfi {
 	// pub modifiers: ModifiersMorfi,
 	pub sinks: SinksMorfi,
@@ -23,7 +23,7 @@ pub struct ModifiersMorfi {
 	pub morph: modifier::Morph,
 }
 
-#[derive(Default, Hash, PartialEq, Eq)]
+#[derive(Clone, Default, Hash, PartialEq, Eq)]
 pub struct SinksMorfi {
 	pub bingo: SinkBingoMorfi,
 	pub value: SinksValueMorfi,
@@ -49,7 +49,7 @@ impl SinksMorfi {
 	}
 }
 
-#[derive(Default, Hash, PartialEq, Eq)]
+#[derive(Clone, Default, Hash, PartialEq, Eq)]
 pub struct SinksValueMorfi {
 	pub any: [sink::Any; 2],
 	pub two_x_your_turn: sink::TwoXYourTurn,
