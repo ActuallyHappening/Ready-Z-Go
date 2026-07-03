@@ -5,20 +5,20 @@ pub mod sink;
 
 #[derive(Default)]
 pub struct Morfi {
-	modifiers: ModifiersMorfi,
-	sinks: SinksMorfi,
+	pub modifiers: ModifiersMorfi,
+	pub sinks: SinksMorfi,
 }
 
 #[derive(Default)]
 pub struct ModifiersMorfi {
-	copy: modifier::Copy,
-	squish: modifier::Squish,
-	morph: modifier::Morph,
+	pub copy: modifier::Copy,
+	pub squish: modifier::Squish,
+	pub morph: modifier::Morph,
 }
 
 pub struct SinksMorfi {
-	bingo: SinkBingo,
-	value: SinksValueMorfi,
+	pub bingo: SinkBingo,
+	pub value: SinksValueMorfi,
 }
 
 impl Default for SinksMorfi {
@@ -32,10 +32,10 @@ impl Default for SinksMorfi {
 
 #[derive(Default)]
 pub struct SinksValueMorfi {
-	any: [sink::Any; 2],
-	two_x_your_turn: sink::TwoXYourTurn,
-	max_four: sink::MaxFour,
-	set_one: [sink::SetOne; 4],
+	pub any: [sink::Any; 2],
+	pub two_x_your_turn: sink::TwoXYourTurn,
+	pub max_four: sink::MaxFour,
+	pub set_one: [sink::SetOne; 4],
 }
 
 impl SinksValueMorfi {

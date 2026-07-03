@@ -14,10 +14,13 @@ pub trait Sink: Clone {
 	}
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 pub enum CannotSink {
+	#[error("sink already filled")]
 	AlreadyFilled,
+	#[error("invalid value for sink")]
 	InvalidValue,
+	#[error("invalid state to fill sink")]
 	InvalidState,
 }
 
@@ -83,12 +86,12 @@ fn test_max_four() {
 	}
 	{
 		let mut empty = MaxFour(None);
-		empty.fill(GameState::default(), AnyNumber::from(3)).unwrap();
+		empty.fill(GameState::default(), AnyNumber::from(3i16)).unwrap();
 		assert_eq!(empty.score(), 3);
 	}
 	{
 		let mut empty = MaxFour(None);
-		let res = empty.fill(GameState::default(), AnyNumber::from(6));
+		let res = empty.fill(GameState::default(), AnyNumber::from(6i16));
 		assert_eq!(res, Err(CannotSink::InvalidValue));
 	}
 }
