@@ -6,6 +6,7 @@ pub mod app_tracing;
 pub mod card;
 pub mod prelude;
 pub mod state;
+pub mod heuristics;
 
 /// This assumption is cross cutting, use this in assertion error messages.
 /// This assumption isn't always true, but when using "reasonable" strategies

@@ -1,11 +1,14 @@
+use std::any::Any;
+
 use rand::seq::IteratorRandom;
 pub(crate) use rapidhash::{HashSetExt as _, RapidHashSet as HashSet};
 use ready_z_go::{
 	card::{
 		self,
 		modifier::{Modifier as _, SquishOptions},
-		sink::{Sink, CAN_FILL_GUARENTEES_FILL_SUCCEEDS},
+		sink::{self, Sink, CAN_FILL_GUARENTEES_FILL_SUCCEEDS},
 	},
+	heuristics::{self, SinkHeuristic},
 	roll, AnyNumber, BasicGame, Score, ALWAYS_VALID_SINK,
 };
 use tracing::*;
@@ -39,13 +42,11 @@ fn count_possibilities() -> color_eyre::Result<()> {
 	let mut by_turn: Vec<Container<BasicGame>> = Vec::with_capacity(12);
 	for turn_num in 0..12 {
 		// init with upper bound
-		// upper bound for 6th turn is max 9-6=3 possibilities per existing state
-		// let capacity_upper_bound = (9 - turn_num) ^ by_turn[turn_num - 1].len();
-		// by_turn.push(HashSet::with_capacity(capacity_upper_bound));
 		let capacity_bounds = [
 			40, 690, 6804, 43071, 187068, 582428, 1338920, 2316303, 3046912, 3054898, 2320836, 1314705,
 		];
 		by_turn.push(Container::with_capacity(capacity_bounds[turn_num]));
+		// by_turn.push(Container::new());
 
 		let previous_turn = if turn_num == 0 {
 			&start
@@ -91,22 +92,41 @@ fn possibilities(game: BasicGame) -> Container2<BasicGame> {
 fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
 	let mut possibilities = Container2::new();
 
+	let mut heuristic = heuristics::PreferSink::<sink::bingo::SinkBingoMorfi>::new(0..=8);
+
 	let state = game.state();
-	let num_valid_sinks = game
+	let initial_valid_sinks = game
 		.card
 		.sinks
 		.iter()
 		.filter(|sink| sink.can_fill(&state, num).is_ok())
-		.count();
+		.collect::<Vec<_>>();
+	let mut num_valid_sinks = initial_valid_sinks.len();
+
+	{
+		let after_heuristic = initial_valid_sinks
+			.iter()
+			.filter(|sink| {
+				// let sink = (&**sink) as &dyn Any;
+				heuristic.filter(&game, **sink)
+			})
+			.collect::<Vec<_>>();
+		num_valid_sinks = after_heuristic.len();
+	}
 
 	for i in 0..num_valid_sinks {
 		let mut sim_game = game.clone();
 		let sim_state = sim_game.state();
+
 		let sink = sim_game
 			.card
 			.sinks
 			.iter_mut()
 			.filter(|sink| sink.can_fill(&sim_state, num).is_ok())
+			.filter(|sink| {
+				let sink = (&**sink) as &dyn Any;
+				heuristic.filter(&game, sink)
+			})
 			.nth(i)
 			.expect("cloned games to have identical sinks");
 

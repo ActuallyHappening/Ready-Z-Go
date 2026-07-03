@@ -4,7 +4,7 @@ pub mod bingo;
 
 /// Can eat exactly one dice roll
 #[dyn_safe(true)]
-pub trait Sink {
+pub trait Sink: std::any::Any {
 	fn score(&self) -> Score;
 
 	/// If [can_fill] succeeds, [fill] must succeed as well.
