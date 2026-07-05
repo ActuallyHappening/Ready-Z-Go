@@ -6,6 +6,7 @@ use crate::{card::sink, prelude::*, BasicGame};
 pub trait SinkHeuristic {
 	/// May aggressively reject all sinks
 	fn filter_sink<'a, 'b, 'c>(&'a mut self, sim_game: &'b BasicGame, sink: &'c dyn Any) -> bool;
+	fn description(&self) -> String;
 }
 
 /// [None] is a no-op filter (allows everything) and disabled
@@ -19,6 +20,13 @@ where
 		};
 		inner.filter_sink(sim_game, sink)
 	}
+
+	fn description(&self) -> String {
+		self
+			.as_ref()
+			.map(SinkHeuristic::description)
+			.unwrap_or_default()
+	}
 }
 
 /// idk exactly why I need this yet
@@ -29,19 +37,25 @@ where
 	fn filter_sink(&mut self, sim_game: &BasicGame, sink: &dyn Any) -> bool {
 		(*self).filter_sink(sim_game, sink)
 	}
+
+	fn description(&self) -> String {
+		(&**self).description()
+	}
 }
 
 pub struct PreferSink<Sink> {
 	pub turns: RangeInclusive<u8>,
+	pub description: String,
 	rejected_count: u128,
 	_phantom: PhantomData<Sink>,
 }
 
 impl<T> PreferSink<T> {
-	pub fn new(turns: RangeInclusive<u8>) -> Self {
+	pub fn new(turns: RangeInclusive<u8>, description: String) -> Self {
 		Self {
 			turns,
 			rejected_count: 0,
+			description,
 			_phantom: PhantomData,
 		}
 	}
@@ -62,5 +76,14 @@ impl<T: 'static> SinkHeuristic for PreferSink<T> {
 			self.rejected_count += 1;
 			false
 		}
+	}
+
+	fn description(&self) -> String {
+		format!(
+			"From turn {} until {}, prefers {}",
+			self.turns.start() + 1,
+			self.turns.end() + 1,
+			self.description
+		)
 	}
 }

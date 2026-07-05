@@ -15,8 +15,7 @@ use tracing::*;
 
 fn main() -> color_eyre::Result<()> {
 	ready_z_go::app_tracing::init_debug_tools("ready_z_go=debug")?;
-	debug!("Logging started");
-	info!("Hello, world!");
+	debug!("This is Ready - Z - Go! game by Sam Kerr, program by Caleb Yates https://github.com/ActuallyHappening/Ready-Z-Go");
 
 	count_possibilities()
 }
@@ -32,6 +31,8 @@ type Container<T> = rapidhash::RapidHashSet<T>;
 /// - Assume taking no action is only allowed when no slots are permitted,
 /// and the number of no-actions should be recorded
 fn count_possibilities() -> color_eyre::Result<()> {
+	debug!("This simulation is on the card Morfi under every posible dice roll and choice");
+	debug!("- Without using any modifiers");
 	let genesis = BasicGame::new();
 	let start = {
 		let mut start = Container::with_capacity(1);
@@ -58,7 +59,7 @@ fn count_possibilities() -> color_eyre::Result<()> {
 		for game in previous_turn {
 			this_turn.extend(possibilities(game.clone()));
 		}
-		info!(%turn_num, "possibilities: {}", this_turn.len());
+		info!(%turn_num, "Number of distinct possibilities: {}", this_turn.len());
 	}
 
 	let last = by_turn.into_iter().last().unwrap();
@@ -67,10 +68,10 @@ fn count_possibilities() -> color_eyre::Result<()> {
 		.fold(0, |acc, game| acc + game.card.score() as u128);
 
 	let last_num = HashSet::<BasicGame>::from_iter(last).len();
-	info!("Final number: {}", last_num);
+	info!("Total number of distinct end states: {}", last_num);
 
 	let average = score_total as f32 / last_num as f32;
-	info!("Average score: {}", average);
+	info!("Mean score (weighting each game state equally): {}", average);
 
 	Ok(())
 }
@@ -94,8 +95,13 @@ fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
 
 	let mut heuristic = Some(heuristics::PreferSink::<sink::bingo::SinkBingoMorfi>::new(
 		0..=8,
+		"the bingo board".into(),
 	));
-	heuristic = None;
+	// heuristic = None;
+
+	if !heuristic.description().is_empty() {
+		debug!("{}", heuristic.description());
+	}
 
 	let state = game.state();
 	let initial_valid_sinks = game
@@ -128,9 +134,7 @@ fn possibilities_num(game: BasicGame, num: AnyNumber) -> Container2<BasicGame> {
 			.sinks
 			.iter_mut()
 			.filter(|sink| sink.can_fill(&sim_state, num).is_ok())
-			.filter(|sink| {
-				heuristic.filter_sink(&game, *sink)
-			})
+			.filter(|sink| heuristic.filter_sink(&game, *sink))
 			.nth(i)
 			.expect("cloned games to have identical sinks");
 
